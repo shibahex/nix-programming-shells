@@ -45,6 +45,7 @@
           name = "python-dev";
           buildInputs = [ pythonEnv ];
           shellHook = ''
+            exec nu
             if [ ! -d .venv ]; then
               echo "Creating virtual environment..."
               python -m venv .venv
@@ -68,6 +69,7 @@
           ];
           shellHook = ''
             export IN_NIX_SHELL="go"
+            exec nu
             echo "Go $(go version)"
           '';
         };
