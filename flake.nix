@@ -6,20 +6,42 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    { self
+    , nixpkgs
+    , flake-utils
+    ,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        nu = pkgs.nushell;
 
-        pythonEnv = pkgs.python3.withPackages (ps: with ps; [
-          pip
-          virtualenv
-        ]);
+        pythonEnv = pkgs.python3.withPackages (
+          ps: with ps; [
+            pip
+            virtualenv
+          ]
+        );
 
+        nuHook = ''
+          export SHELL=${nu}/bin/nu
+          exec nu
+        '';
+
+        mkNuShell =
+          args:
+          pkgs.mkShell (
+            args
+            // {
+              buildInputs = (args.buildInputs or [ ]) ++ [ nu ];
+              shellHook = (args.shellHook or "") + nuHook;
+            }
+          );
       in
       {
-
-        devShells.rust = pkgs.mkShell {
+        devShells.rust = mkNuShell {
           name = "rust-dev";
           buildInputs = with pkgs; [
             cargo
@@ -29,37 +51,32 @@
             rust-analyzer
             pkg-config
             openssl
-            nushell
           ];
           RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
           PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
           RUST_LOG = "debug";
           shellHook = ''
             export IN_NIX_SHELL="rust"
-            export SHELL=${pkgs.nushell}/bin/nu
-            exec nu
+            echo "$(rustc --version)"
           '';
         };
 
-        devShells.python = pkgs.mkShell {
+        devShells.python = mkNuShell {
           name = "python-dev";
           buildInputs = [ pythonEnv ];
           shellHook = ''
-            exec nu
             if [ ! -d .venv ]; then
-              echo "Creating virtual environment..."
               python -m venv .venv
             fi
-            source .venv/bin/activate
             if [ -f requirements.txt ]; then
-              echo "Installing requirements..."
               pip install -r requirements.txt
             fi
-            echo "Python $(python --version)"
+            echo "$(python --version)"
+
           '';
         };
 
-        devShells.go = pkgs.mkShell {
+        devShells.go = mkNuShell {
           name = "go-dev";
           buildInputs = with pkgs; [
             go
@@ -69,11 +86,9 @@
           ];
           shellHook = ''
             export IN_NIX_SHELL="go"
-            exec nu
-            echo "Go $(go version)"
+            echo "$(go version)"
           '';
         };
-
       }
     );
 }
