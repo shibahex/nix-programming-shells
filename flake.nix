@@ -61,9 +61,12 @@
           '';
         };
 
-        devShells.python = mkNuShell {
+        devShells.python = pkgs.mkShell {
           name = "python-dev";
-          buildInputs = [ pythonEnv ];
+          buildInputs = [
+            pythonEnv
+            nu
+          ];
           shellHook = ''
             if [ ! -d .venv ]; then
               python -m venv .venv
@@ -72,7 +75,10 @@
               pip install -r requirements.txt
             fi
             echo "$(python --version)"
-
+            export VIRTUAL_ENV="$PWD/.venv"
+            export PATH="$PWD/.venv/bin:$PATH"
+            export SHELL=${nu}/bin/nu
+            exec nu
           '';
         };
 
