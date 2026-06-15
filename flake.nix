@@ -74,7 +74,7 @@
             if [ -f requirements.txt ]; then
               pip install -r requirements.txt
             fi
-            echo "$(python --version)"
+            echo "python version: $(python --version)"
             export VIRTUAL_ENV="$PWD/.venv"
             export PATH="$PWD/.venv/bin:$PATH"
             export SHELL=${nu}/bin/nu
@@ -92,7 +92,19 @@
           ];
           shellHook = ''
             export IN_NIX_SHELL="go"
-            echo "$(go version)"
+            export PATH="$PATH:$HOME/go/bin"
+            echo "go version: $(go version)"
+          '';
+        };
+        devShells.zig = mkNuShell {
+          name = "zig-dev";
+          buildInputs = with pkgs; [
+            zig
+            zls
+          ];
+          shellHook = ''
+            export IN_NIX_SHELL="zig"
+            echo "zig version: $(zig version)"
           '';
         };
       }
