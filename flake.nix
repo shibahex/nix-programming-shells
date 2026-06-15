@@ -89,6 +89,12 @@
             gopls
             gotools
             delve
+            # for emmet lsp
+            nodejs
+            # live refreshing for web apps
+            air
+            # better templates
+            templ
           ];
           shellHook = ''
             export IN_NIX_SHELL="go"
