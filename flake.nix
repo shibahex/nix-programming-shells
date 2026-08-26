@@ -71,12 +71,12 @@
             if [ ! -d .venv ]; then
               python -m venv .venv
             fi
+            export VIRTUAL_ENV="$PWD/.venv"
+            export PATH="$PWD/.venv/bin:$PATH"
             if [ -f requirements.txt ]; then
               pip install -r requirements.txt
             fi
             echo "python version: $(python --version)"
-            export VIRTUAL_ENV="$PWD/.venv"
-            export PATH="$PWD/.venv/bin:$PATH"
             export SHELL=${nu}/bin/nu
             exec nu
           '';
